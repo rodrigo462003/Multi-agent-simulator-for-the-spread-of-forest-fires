@@ -35,6 +35,8 @@ windDirection = {
 def exit_handler():
     plt.xlim(0, 200)
     plt.plot(arvoresArdidas)
+    with open("graphs/plotData.txt", "a") as f:
+        f.write(str(arvoresArdidas)[1:-1] + "\n")
     plt.savefig("graphs/arvoresArdidasMin.png")
 
 
@@ -47,7 +49,7 @@ class Tree(Agent):
 
         self.id = id
         self.condition = "Fine"
-        self.new_condition = None
+        # self.new_condition = None
 
     def cardinal_direction(self, point1, point2):
         dx = point2[0] - point1[0]
@@ -105,9 +107,9 @@ class Tree(Agent):
                 + K_HUMIDADE * self.model.pHumidade
                 + K_TIPO_DE_ARVORE * pTipoArvore
             )
-            # print("probability", probability, "\n")
+            print("probability", probability, "\n")
             if random.random() < probability:
-                self.new_condition = "OnFire"
+                self.model.setFire.append(self)
                 break
 
 
@@ -130,6 +132,7 @@ class Fire(Model):
         self.Temperatura = Temperatura
         self.pTemperatura = self.Temperatura / 60
         self.pHumidade = 1 - self.humidade / 100
+        self.setFire = []
         global arvoresArdidas
         arvoresArdidas = [1]
         self.time = 0
@@ -154,11 +157,10 @@ class Fire(Model):
     def step(self):
         self.schedule.step()
         treesBurned = arvoresArdidas[-1]
-        for agent in self.schedule.agents:
-            if agent.new_condition is not None:
-                agent.condition = agent.new_condition
-                agent.new_condition = None
-                treesBurned += 1
+        for agent in self.setFire:
+            agent.condition = "OnFire"
+            treesBurned += 1
+        self.setFire = []
         arvoresArdidas.append(treesBurned)
 
 
