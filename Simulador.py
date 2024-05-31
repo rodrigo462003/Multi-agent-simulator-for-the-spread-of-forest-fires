@@ -17,8 +17,7 @@ K_HUMIDADE = 0.20
 K_TIPO_DE_ARVORE = 0.20
 
 arvoresArdidas = [1]
-
-arvoresProbabilidade = {"Pinheiro": 0.3, "Eucalipto": 0.5, "Carvalho": 0.2}
+arvoresProbabilidade = {"Pine Tree": 0.3, "Eucalyptus": 0.5, "Oak Tree": 0.2}
 
 windDirection = {
     "W": math.pi,
@@ -183,22 +182,22 @@ chart = ChartModule([{"Label": "TreesOnFire", "Color": "red"}])
 server = mesa.visualization.ModularServer(
     Fire,
     [grid],
-    "Incendio florestal",
+    "Forest Fire",
     {
-        "NArvores": Slider("Numero de arvores", 5000, 1, 10000),
-        "Humidade": Slider("Humidade Relativa(%)", 65, 0, 100),
-        "VelocidadeVento": Slider("Velocidade do Vento(km/h)", 26, 0, 200),
+        "NArvores": Slider("Number of trees", 5000, 1, 10000),
+        "Humidade": Slider("Relative Humidity(%)", 65, 0, 100),
+        "VelocidadeVento": Slider("Wind Speed(km/h)", 26, 0, 200),
         "DirecaoDoVento": Choice(
-            "Direcao Do Vento",
+            "Wind Direction",
             value="N",
             choices=["N", "NE", "E", "SE", "S", "SW", "W", "NW"],
         ),
         "TipoDeVegetacao": Choice(
-            "Tipo de Vegetação",
-            value="Pinheiro",
-            choices=["Pinheiro", "Eucalipto", "Carvalho"],
+            "Vegetation Type",
+            value="Pine Tree",
+            choices=["Pine Tree", "Eucalyptus", "Oak Tree"],
         ),
-        "Temperatura": Slider("Temperatura", 14, 0, 60),
+        "Temperatura": Slider("Temperature(°C)", 14, 0, 60),
     },
 )
 server.port = 8521
