@@ -50,7 +50,6 @@ def exit_handler():
 
 atexit.register(exit_handler)
 
-
 class Tree(Agent):
     def __init__(self, id, model):
         super().__init__(id, model)
