@@ -7,16 +7,18 @@ import random
 import nest_asyncio
 import math
 import atexit
+import os
 
 nest_asyncio.apply()
 
-K_DISTANCIA = 0.20
-K_VENTO = 0.20
-K_TEMPERATURA = 0.20
-K_HUMIDADE = 0.20
-K_TIPO_DE_ARVORE = 0.20
+K_DISTANCIA = 0.05
+K_VENTO = 0.283
+K_TEMPERATURA = 0.283
+K_HUMIDADE = 0.283
+K_TIPO_DE_ARVORE = 0.1
 
 arvoresArdidas = [1]
+arvoresQueimadas = [1]
 arvoresProbabilidade = {"Pine Tree": 0.3, "Eucalyptus": 0.5, "Oak Tree": 0.2}
 
 windDirection = {
@@ -32,11 +34,18 @@ windDirection = {
 
 
 def exit_handler():
-    plt.xlim(0, 200)
-    plt.plot(arvoresArdidas)
-    with open("graphs/plotData.txt", "a") as f:
-        f.write(str(arvoresArdidas)[1:-1] + "\n")
-    plt.savefig("graphs/arvoresArdidasMin.png")
+    # plt.ylabel("Number of trees")
+    # plt.xlabel("Iterations")
+    # plt.title("Trees on fire and trees burned per iteration")
+    # plt.plot(arvoresArdidas, color="red", label="Trees on fire")
+    # plt.plot(arvoresQueimadas, color="black", label="Trees burned")
+    with open("graphs/plotData.csv", "a") as f:
+        f.write("Temperature = 60," + str(arvoresArdidas)[1:-1] + "\n")
+    with open("graphs/plotData2.csv", "a") as f2:
+        f2.write("Temperature = 60," + str(arvoresQueimadas)[1:-1] + "\n")
+    # plt.legend()
+    # plt.savefig("graphs/ExtremeMin.svg", format="svg")
+    os._exit()
 
 
 atexit.register(exit_handler)
@@ -48,6 +57,7 @@ class Tree(Agent):
 
         self.id = id
         self.condition = "Fine"
+        self.stepsOnFire = 0
         # self.new_condition = None
 
     def cardinal_direction(self, point1, point2):
@@ -58,25 +68,31 @@ class Tree(Agent):
         return angle
 
     def step(self):
+        if self.condition == "OnFire":
+            self.stepsOnFire += 1
+            if self.stepsOnFire >= 12:
+                self.model.newBurned += 1
+                self.condition = "Burned"
+                return
+        if self.condition != "Fine":
+            return
         grid = self.model.grid
-        neighbors = grid.get_neighbors(self.pos, moore=True, radius=5)
-
+        neighbors = grid.get_neighbors(self.pos, moore=True, radius=2)
         for neighbor in neighbors:
-            if self.condition != "Fine" or neighbor.condition != "OnFire":
+            if neighbor.condition != "OnFire":
                 continue
-
             distance = (
                 (self.pos[0] - neighbor.pos[0]) ** 2
                 + (self.pos[1] - neighbor.pos[1]) ** 2
             ) ** 0.5
-
-            pDistancia = 1 - ((distance - 1) / (50**0.5 - 1))
+            pDistancia = 1 - ((distance - 1) / (18**0.5 - 1))
             angle = -math.cos(
                 self.cardinal_direction(self.pos, neighbor.pos)
                 - windDirection[self.model.direcaoDoVento]
             )
-            pVento = (self.model.velocidade * angle + 200) / 400
 
+            pVento = (self.model.velocidade * angle + 200) / 400
+            # print(pVento)
             pTipoArvore = arvoresProbabilidade[self.model.TipoDeVegetacao]
             """
             print(
@@ -105,8 +121,8 @@ class Tree(Agent):
                 + K_TEMPERATURA * self.model.pTemperatura
                 + K_HUMIDADE * self.model.pHumidade
                 + K_TIPO_DE_ARVORE * pTipoArvore
-            )
-            print("probability", probability, "\n")
+            ) * 0.05612
+            # print("probability", probability / 0.05612, "\n")
             if random.random() < probability:
                 self.model.setFire.append(self)
                 break
@@ -131,9 +147,14 @@ class Fire(Model):
         self.Temperatura = Temperatura
         self.pTemperatura = self.Temperatura / 60
         self.pHumidade = 1 - self.humidade / 100
+        self.numIterations = 0
+        self.maxIterations = 500
+        self.newBurned = 0
         self.setFire = []
         global arvoresArdidas
         arvoresArdidas = [1]
+        global arvoresQueimadas
+        arvoresQueimadas = [1]
         self.time = 0
         self.schedule = mesa.time.RandomActivation(self)
         self.grid = mesa.space.SingleGrid(100, 100, False)
@@ -142,24 +163,33 @@ class Fire(Model):
         ]
 
         random.shuffle(all_coordinates)
+
         for i in range(self.num_trees):
             a = Tree(i, self)
             self.schedule.add(a)
             x, y = all_coordinates[i]
             self.grid.place_agent(a, (x, y))
+
         self.startFire()
 
     def startFire(self):
+        # começar cenarios sempre na mesma posição em testes...
         random_agent = random.choice(self.schedule.agents)
         random_agent.condition = "OnFire"
 
     def step(self):
+        self.numIterations += 1
+        if self.numIterations > self.maxIterations:
+            exit_handler()
         self.schedule.step()
         treesBurned = arvoresArdidas[-1]
         for agent in self.setFire:
             agent.condition = "OnFire"
             treesBurned += 1
+        arvoresQueimadas.append(arvoresQueimadas[-1] + self.newBurned)
+        treesBurned = treesBurned - self.newBurned
         self.setFire = []
+        self.newBurned = 0
         arvoresArdidas.append(treesBurned)
 
 
