@@ -12,9 +12,9 @@ import os
 nest_asyncio.apply()
 
 K_DISTANCIA = 0.05
-K_VENTO = 0.283
-K_TEMPERATURA = 0.283
-K_HUMIDADE = 0.283
+K_VENTO = 0.150
+K_TEMPERATURA = 0.35
+K_HUMIDADE = 0.35
 K_TIPO_DE_ARVORE = 0.1
 
 arvoresArdidas = [1]
@@ -39,10 +39,10 @@ def exit_handler():
     # plt.title("Trees on fire and trees burned per iteration")
     # plt.plot(arvoresArdidas, color="red", label="Trees on fire")
     # plt.plot(arvoresQueimadas, color="black", label="Trees burned")
-    with open("graphs/plotData.csv", "a") as f:
-        f.write("Temperature = 60," + str(arvoresArdidas)[1:-1] + "\n")
-    with open("graphs/plotData2.csv", "a") as f2:
-        f2.write("Temperature = 60," + str(arvoresQueimadas)[1:-1] + "\n")
+    with open("graphs/plotDataOnFire.csv", "a") as f:
+        f.write("Humidity = 100," + str(arvoresArdidas)[1:-1] + "\n")
+    with open("graphs/plotDataDead.csv", "a") as f2:
+        f2.write("Humidity = 100," + str(arvoresQueimadas)[1:-1] + "\n")
     # plt.legend()
     # plt.savefig("graphs/ExtremeMin.svg", format="svg")
     os._exit()

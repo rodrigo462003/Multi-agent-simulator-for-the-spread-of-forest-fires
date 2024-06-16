@@ -8,27 +8,25 @@ with open("graphs/plotData.csv", "r") as f:
         data_list.append(row)
 
 colors = {
-    "Temperature = 0": "blue",
-    "Temperature = 12": "green",
-    "Temperature = 24": "yellow",
-    "Temperature = 36": "purple",
-    "Temperature = 48": "black",
-    "Temperature = 60": "red",
+    "Humidity = 0": "blue",
+    "Humidity = 25": "green",
+    "Humidity = 50": "yellow",
+    "Humidity = 75": "purple",
+    "Humidity = 100": "red",
 }
-
 plt.ylabel("Number of trees")
 plt.xlabel("Iterations")
-plt.title("Trees on fire per iteration")
+plt.title("Trees burned per iteration")
 
 for row in data_list:
     temperature = row.pop(0)
-    Temperature2 = "Temperature = " + temperature.split(" = ")[1]
+    Temperature2 = "Humidity = " + temperature.split(" = ")[1]
     color = colors[temperature]
 
-    iterations_data = list(map(int, row))
+    iterations_data = list(map(float, row))
 
     plt.plot(iterations_data, color=color, label=Temperature2)
 
 plt.legend()
-plt.savefig("graphs/Temperature.svg", format="svg")
+plt.savefig("graphs/RelativeHumidity.svg", format="svg")
 plt.show()
